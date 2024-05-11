@@ -144,7 +144,7 @@ int main()
 
     //Task 5
     int sum = 0;
-    while (true) 
+    while (true)
     {
         std::cout << "Enter a symbol: ";
         char symbol;
