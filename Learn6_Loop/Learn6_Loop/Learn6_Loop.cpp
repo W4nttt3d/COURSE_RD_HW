@@ -7,21 +7,19 @@ int main()
     std::cout << "Enter 3 numbers\n";
 
     float firstElement, step;
-    int LastNumberElement;
+    int NumberElement;
 
     std::cout << "First element of an arithmetic progression: ";
     std::cin >> firstElement;
     std::cout << "Step of arithmetic progression: ";
     std::cin >> step;
     std::cout << "Number of the last element of the arithmetic progression: ";
-    std::cin >> LastNumberElement;
+    std::cin >> NumberElement;
 
-    int currentNumberElement = 0;
-    while (currentNumberElement <= LastNumberElement)
+    for (int i = 0; i < NumberElement; ++i)
     {
-        float currentElement = firstElement + currentNumberElement * step;
-        std::cout << currentElement << " ";
-        currentNumberElement++;
+        double element = firstElement + i * step;
+        std::cout << element << " ";
     }
 
     std::cout << std::endl << std::endl;
@@ -129,14 +127,7 @@ int main()
     {
         for (int y = 0; y <= i; y++)
         {
-            if ((i + y) % 2 == 0)
-            {
-                std::cout << "1";
-            }
-            else
-            {
-                std::cout << "0";
-            }
+            std::cout << ((i + y) % 2);
         }
         std::cout << std::endl;
     }
