@@ -1,8 +1,5 @@
-#ifndef RECURSIVE_FUNCTIONS_H
-#define RECURSIVE_FUNCTIONS_H
+#pragma once
 
 void downNumbersRecursion(int count);
-void upNumbersRecursion(int count, int currentNumber = 0);
+void upNumbersRecursion(int count);
 int factorialRecursion(int n);
-
-#endif // RECURSIVE_FUNCTIONS_H

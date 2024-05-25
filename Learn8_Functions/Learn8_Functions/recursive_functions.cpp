@@ -11,14 +11,14 @@ void downNumbersRecursion(int count)
     downNumbersRecursion(count - 1);
 }
 
-void upNumbersRecursion(int count, int currentNumber)
+void upNumbersRecursion(int count)
 {
-    if (count < currentNumber)
+    if (count == 0)
     {
         return;
     }
-    std::cout << currentNumber << " ";
-    upNumbersRecursion(count, currentNumber + 1);
+    upNumbersRecursion(count - 1);
+    std::cout << count << " ";
 }
 
 int factorialRecursion(int n)

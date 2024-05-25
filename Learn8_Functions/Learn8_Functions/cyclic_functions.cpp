@@ -25,7 +25,7 @@ int factorialLoop(int factorialNumber)
 {
     int factorial = 1;
 
-    for (int i = 1; i <= factorialNumber; i++)
+    for (int i = 2; i <= factorialNumber; i++)
     {
         factorial = factorial * i;
     }
