@@ -1,0 +1,5 @@
+gamesPlayed: 11
+gamesWon: 4
+gamesLost: 7
+points: 13
+dateTime: 30.6.2024
