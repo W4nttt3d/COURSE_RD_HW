@@ -18,7 +18,7 @@ float Rectangle::getArea()
     return m_length * m_height;
 }
 
-float Rectangle::getPerimeter()
+float Rectangle::getPerimeter() const
 {
     return 2 * (m_length + m_height);
 }
