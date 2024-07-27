@@ -22,4 +22,3 @@ private:
 	bool m_Tables[TABLES_COUNT];
 	Coffee* m_Orders[TABLES_COUNT];
 };
-

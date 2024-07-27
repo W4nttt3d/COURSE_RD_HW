@@ -2,7 +2,7 @@
 
 #include <string>
 
-enum class CoffeeType 
+enum class CoffeeType
 {
     Espresso,
     Latte,
@@ -15,11 +15,10 @@ class Coffee
 public:
     Coffee(CoffeeType t);
     void prepare();
-    int getCost();
+    int getCost() const;
 
 private:
     CoffeeType type;
     int cost;
     void setCost();
 };
-

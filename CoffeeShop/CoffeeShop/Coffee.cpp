@@ -31,7 +31,7 @@ void Coffee::setCost()
 	}
 }
 
-int Coffee::getCost()
+int Coffee::getCost() const
 {
 	return cost;
 }

@@ -4,13 +4,13 @@
 
 int main()
 {
-    CoffeeShop myCoffeeShop("Hypernova");
+	CoffeeShop myCoffeeShop("Hypernova");
 
-    int tableNumber = myCoffeeShop.takePlace();
+	int tableNumber = myCoffeeShop.takePlace();
 
 	if (tableNumber != -1)
 	{
-		std::cout << "Table " << tableNumber + 1 << " is taken.\n"; 
+		std::cout << "Table " << tableNumber + 1 << " is taken.\n";
 
 		myCoffeeShop.order(tableNumber);
 

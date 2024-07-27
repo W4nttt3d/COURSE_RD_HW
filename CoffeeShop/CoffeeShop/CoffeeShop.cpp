@@ -11,9 +11,9 @@ CoffeeShop::CoffeeShop(const std::string& shopName) : name(shopName)
 	}
 }
 
-CoffeeShop::~CoffeeShop() 
+CoffeeShop::~CoffeeShop()
 {
-	for (int i = 0; i < TABLES_COUNT; i++) 
+	for (int i = 0; i < TABLES_COUNT; i++)
 	{
 		delete m_Orders[i];
 	}
@@ -40,7 +40,7 @@ void CoffeeShop::order(int tableNumber)
 		return;
 	}
 
-	std::cout << "Welcome to "<< name << " cafe\n";
+	std::cout << "Welcome to " << name << " cafe\n";
 	std::cout << "Choose your coffee:\n";
 	std::cout << "1. Espresso\n";
 	std::cout << "2. Latte\n";
@@ -52,21 +52,21 @@ void CoffeeShop::order(int tableNumber)
 
 	CoffeeType type;
 	switch (choice) {
-		case 1:
-			type = CoffeeType::Espresso;
-			break;
-		case 2:
-			type = CoffeeType::Latte;
-			break;
-		case 3:
-			type = CoffeeType::Cappuccino;
-			break;
-		case 4:
-			type = CoffeeType::Americano;
-			break;
-		default:
-			std::cout << "Invalid choice.\n";
-			return;
+	case 1:
+		type = CoffeeType::Espresso;
+		break;
+	case 2:
+		type = CoffeeType::Latte;
+		break;
+	case 3:
+		type = CoffeeType::Cappuccino;
+		break;
+	case 4:
+		type = CoffeeType::Americano;
+		break;
+	default:
+		std::cout << "Invalid choice.\n";
+		return;
 	}
 
 	delete m_Orders[tableNumber];
@@ -76,7 +76,7 @@ void CoffeeShop::order(int tableNumber)
 
 bool CoffeeShop::prepare(int tableNumber)
 {
-	if (tableNumber < 0 || tableNumber >= TABLES_COUNT || m_Orders[tableNumber] == nullptr) 
+	if (tableNumber < 0 || tableNumber >= TABLES_COUNT || m_Orders[tableNumber] == nullptr)
 	{
 		std::cout << "No order to prepare.\n";
 		return false;
@@ -87,7 +87,7 @@ bool CoffeeShop::prepare(int tableNumber)
 }
 
 bool CoffeeShop::getReceipt(int tableNumber) {
-	if (tableNumber < 0 || tableNumber >= TABLES_COUNT || m_Orders[tableNumber] == nullptr) 
+	if (tableNumber < 0 || tableNumber >= TABLES_COUNT || m_Orders[tableNumber] == nullptr)
 	{
 		std::cout << "No order exists for this table.\n";
 		return false;
