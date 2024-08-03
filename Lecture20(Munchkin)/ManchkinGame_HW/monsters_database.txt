@@ -1,0 +1,14 @@
+Kobold;4;Zombie;Runaway_LevelDowngradeIf;1;2;Victory_LevelBonus;1
+Goblin;1;Human;Runaway_LevelDowngrade;1;Victory_LevelBonus;1
+Rat;2;Human;Runaway_LevelDowngrade;1;Victory_ItemFromHandAdd
+Imp;3;Human;Runaway_ModifierFromHandRemoval;Victory_ModifierFromHandAdd
+Gremlin;5;Undead;Runaway_ItemEquipedRemoval;Victory_ItemFromHandAdd
+Shiva Destructor;20;God;Runaway_LevelDowngradeIf;2;5;Victory_LevelBonus;2
+Vampire;15;Undead;Runaway_LevelDowngrade;1;Victory_LevelBonus;1
+Zombie King;10;Zombie;Runaway_ItemEquipedRemoval;Victory_ItemFromHandAdd
+Skeleton Lord;8;Undead;Runaway_ModifierFromHandRemoval;Victory_ModifierFromHandAdd
+Thor;18;God;Runaway_BiggestBonusCardRemoval;Victory_LevelBonus;2
+Ghoul;6;Human;Runaway_LevelDowngrade;1;Victory_LevelBonus;1
+Banshee;7;Zombie;Runaway_ItemEquipedRemoval;Victory_ItemFromHandAdd
+Wraith;9;Undead;Runaway_ModifierFromHandRemoval;Victory_ModifierFromHandAdd
+Zeus;20;God;Runaway_BiggestBonusCardRemoval;Victory_LevelBonus;2
