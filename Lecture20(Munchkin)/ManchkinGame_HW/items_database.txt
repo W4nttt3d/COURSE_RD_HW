@@ -1,0 +1,8 @@
+Weapon;The Sword of DOOM;5
+UndeadWeapon;Stinky knife;2
+UndeadWeapon;Holy grenade;4
+ZombieWeapon;Holy sword;6
+Weapon;Enchanted Bow;7
+UndeadWeapon;Cursed Dagger;1
+ZombieWeapon;Zombie Axe;5
+Weapon;Divine Staff;8

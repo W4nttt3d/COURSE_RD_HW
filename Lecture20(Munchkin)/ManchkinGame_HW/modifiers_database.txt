@@ -1,0 +1,13 @@
+SimpleModifier;3
+SimpleModifier;3
+SimpleModifier;2
+SimpleModifier;2
+SimpleModifier;2
+SimpleModifier;4
+SimpleModifier;1
+SimpleModifier;1
+SimpleModifier;1
+HalvesMonsterLevel;Undead
+HalvesMonsterLevel;God
+DoubleMunchkinLevel
+DoubleMunchkinLevel
