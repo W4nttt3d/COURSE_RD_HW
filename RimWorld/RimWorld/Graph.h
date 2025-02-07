@@ -2,6 +2,8 @@
 #include <vector>
 #include <unordered_map>
 #include <list>
+#include <functional>
+#include <set>
 
 class Graph {
 public:
@@ -9,6 +11,8 @@ public:
 
     void addEdge(unsigned x, unsigned y);
     std::vector<unsigned> bfs(unsigned start, unsigned destination);
+    std::vector<unsigned> aStar(unsigned start, unsigned destination, const std::function<float(unsigned, unsigned)>& heuristic);
+
 
 private:
     unsigned numVertices;

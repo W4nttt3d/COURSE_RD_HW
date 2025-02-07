@@ -21,9 +21,12 @@ private:
     sf::Sprite m_buildingSprite;
     sf::Texture m_buildingTexture;
     sf::RectangleShape m_zoneIndicator;
+    sf::Sprite m_blockSprite;
+    sf::Texture m_blockTexture;
     sf::Vector2i m_mousePosition;
     bool m_isPlacing;
     bool m_isZoning;
+    bool m_taskAssigned;
 
     void loadTexture();
 };

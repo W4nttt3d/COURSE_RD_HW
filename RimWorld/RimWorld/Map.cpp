@@ -111,6 +111,9 @@ void Map::createSprites()
                 objectSprite.setColor(sf::Color(144, 188, 251, 100));
                 break;
             case 11:
+                objectSprite.setTexture(*m_blockTexture);
+                objectSprite.setColor(sf::Color(255, 255, 255, 255));
+                break;
             case 12:
                 objectSprite.setTexture(*m_blockTexture);
                 objectSprite.setColor(sf::Color(255, 105, 180, 100));
@@ -171,13 +174,15 @@ bool Map::isTileBlocked(const sf::Vector2u& position) const
         return true;
     }
 
-    return m_objectLayer[y][x] != 0 && m_objectLayer[y][x] != 3 && m_objectLayer[y][x] != 12 /*&& m_objectLayer[y][x] != 4 && m_objectLayer[y][x] != 5 && m_objectLayer[y][x] != 6 && m_objectLayer[y][x] != 7*/;
+    return m_objectLayer[y][x] != 0 && m_objectLayer[y][x] != 3 && m_objectLayer[y][x] != 12 && m_objectLayer[y][x] != 10 /*&& m_objectLayer[y][x] != 4 && m_objectLayer[y][x] != 5 && m_objectLayer[y][x] != 6 && m_objectLayer[y][x] != 7*/;
 }
 
-sf::Vector2f Map::getPositionFromTile(const sf::Vector2u& tile) const
+sf::Vector2f Map::getPositionFromTile(const sf::Vector2u& tile) const 
 {
-    return { static_cast<float>(tile.x * TILE_WIDTH), static_cast<float>(tile.y * TILE_HEIGHT) };
+    float tileSize = 64.0f; 
+    return sf::Vector2f(tile.x * tileSize + tileSize / 2, tile.y * tileSize + tileSize / 2);
 }
+
 
 sf::Vector2u Map::getTileFromPosition(const sf::Vector2f& position) const
 {

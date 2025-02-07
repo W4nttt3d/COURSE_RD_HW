@@ -26,7 +26,10 @@ public:
     void setQuantity(int quantity);
     void setVisible(bool visible);
     bool isVisible() const;
-    void setPosition(const sf::Vector2u& position);
+    void setPosition(const sf::Vector2f& position);
+    void updateTiles(const std::vector<std::pair<int, int>>& newTiles);
+    void setFont(sf::Font* font);
+
 
 private:
     ResourceType m_type;

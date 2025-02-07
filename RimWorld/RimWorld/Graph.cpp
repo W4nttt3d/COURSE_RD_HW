@@ -13,7 +13,8 @@ void Graph::addEdge(unsigned x, unsigned y)
 std::vector<unsigned> Graph::bfs(unsigned start, unsigned destination)
 {
     std::vector<unsigned> path;
-    if (start == destination) {
+    if (start == destination) 
+    {
         path.push_back(start);
         return path;
     }
@@ -56,4 +57,60 @@ std::vector<unsigned> Graph::bfs(unsigned start, unsigned destination)
     }
 
     return path;
+}
+
+std::vector<unsigned> Graph::aStar(unsigned start, unsigned destination, const std::function<float(unsigned, unsigned)>& heuristic)
+{
+    std::vector<unsigned> path;
+    if (start == destination)
+    {
+        path.push_back(start);
+        return path;
+    }
+
+    std::vector<float> gScore(numVertices, std::numeric_limits<float>::infinity());
+    gScore[start] = 0.0f;
+
+    std::vector<float> fScore(numVertices, std::numeric_limits<float>::infinity());
+    fScore[start] = heuristic(start, destination);
+
+    std::unordered_map<unsigned, unsigned> cameFrom;
+    std::set<std::pair<float, unsigned>> openSet;
+    openSet.insert({ fScore[start], start });
+
+    while (!openSet.empty())
+    {
+        unsigned current = openSet.begin()->second;
+        openSet.erase(openSet.begin());
+
+        if (current == destination)
+        {
+            for (unsigned step = destination; step != start; step = cameFrom[step])
+            {
+                path.push_back(step);
+            }
+            path.push_back(start);
+            std::reverse(path.begin(), path.end());
+            return path;
+        }
+
+        auto it = m_adjacencyList.find(current);
+        if (it != m_adjacencyList.end())
+        {
+            for (unsigned neighbor : it->second)
+            {
+                float tentativeGScore = gScore[current] + 1.0f; 
+                if (tentativeGScore < gScore[neighbor])
+                {
+                    cameFrom[neighbor] = current;
+                    gScore[neighbor] = tentativeGScore;
+                    fScore[neighbor] = gScore[neighbor] + heuristic(neighbor, destination);
+
+                    openSet.insert({ fScore[neighbor], neighbor });
+                }
+            }
+        }
+    }
+
+    return path; 
 }

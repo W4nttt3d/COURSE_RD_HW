@@ -1,6 +1,6 @@
 #include "Tool.h"
 
-Tool::Tool() : m_isPlacing(false), m_isZoning(false)
+Tool::Tool() : m_isPlacing(false), m_isZoning(false), m_taskAssigned(false)
 {
     loadTexture();
     m_buildingSprite.setTexture(m_buildingTexture);
@@ -38,9 +38,17 @@ void Tool::update(const sf::Vector2i& mousePosition, sf::RenderWindow& window, c
 
         m_buildingSprite.setPosition(offsetX, offsetY);
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
         {
-            placeBuilding(worldPosition);
+            if (!m_taskAssigned) 
+            { 
+                placeBuilding(worldPosition);
+                m_taskAssigned = true; 
+            }
+        }
+        else 
+        {
+            m_taskAssigned = false; 
         }
     }
     else if (m_isZoning)
@@ -70,14 +78,16 @@ void Tool::draw(sf::RenderWindow& window)
     }
 }
 
-void Tool::placeBuilding(const sf::Vector2f& worldPosition)
+void Tool::placeBuilding(const sf::Vector2f& worldPosition) 
 {
     int x = static_cast<int>(worldPosition.x) / 64;
     int y = static_cast<int>(worldPosition.y) / 64;
 
-    if (x >= 0 && x < 85 && y >= 0 && y < 85)
+    if (x >= 0 && x < 85 && y >= 0 && y < 85) 
     {
         Map::GetInstance().setObjectLayer(x, y, 10);
+
+        NpcManager::GetInstance().assignBuildTask(sf::Vector2u(x, y), ResourceType::TREE, -15);
     }
 }
 

@@ -7,15 +7,13 @@ Resource::Resource(ResourceType type, const std::vector<std::pair<int, int>>& ti
 {
     m_texture = new sf::Texture();
     loadTexture();
-    /*m_font = new sf::Font();
-    setupText();*/
 
 
     if (!m_tiles.empty()) {
         sf::Vector2u pos(m_tiles[0].first, m_tiles[0].second);
         sf::Vector2f position(static_cast<float>(pos.x * 64 + 32), static_cast<float>(pos.y * 64 + 32));
+        m_text.setPosition(position.x - 3, position.y + 11);
         m_sprite.setPosition(position);
-        //m_text.setPosition(position.x, position.y + m_sprite.getGlobalBounds().height / 2 + 10); 
     }
 
     sf::FloatRect bounds = m_sprite.getLocalBounds();
@@ -36,23 +34,39 @@ int Resource::getQuantity() const
 void Resource::setQuantity(int quantity)
 {
     m_quantity += quantity;
+    m_text.setString(std::to_string(m_quantity));
+
+    if (m_quantity <= 0)
+    {
+        setVisible(false);
+        destroy();
+        ResourceManager::GetInstance().removeResource(getPosition2u()); 
+    }
+    else if(m_quantity > 0 && m_visible == false)
+    {
+        setVisible(true);
+    }
+}
+
+void Resource::setFont(sf::Font* font)
+{
+    m_font = font;
     setupText();
 }
 
+
 void Resource::setupText()
 {
-    m_font->loadFromFile("Assets/FixelDisplay-Bold.ttf");
-
+    m_text.setString(std::to_string(m_quantity));
     m_text.setFont(*m_font);
     m_text.setCharacterSize(20);
     m_text.setFillColor(sf::Color::White);
-
-    m_text.setString(std::to_string(m_quantity));
 }
 
 void Resource::draw(sf::RenderWindow& window) const
 {
     window.draw(m_sprite);
+    window.draw(m_text);
 }
 
 void Resource::loadTexture()
@@ -91,12 +105,16 @@ void Resource::setVisible(bool visible)
     m_visible = visible;
     if (visible)
     {
-        m_sprite.setColor(sf::Color(255, 255, 255, 0));
+        m_sprite.setColor(sf::Color(255, 255, 255, 255));
+        m_text.setFillColor(sf::Color(255, 255, 255, 255));
     }
     else
     {
-        m_sprite.setColor(sf::Color::Transparent);
+        m_sprite.setColor(sf::Color(255, 255, 255, 0));
+        m_text.setFillColor(sf::Color(255, 255, 255, 0));
     }
+
+    std::cout << "Set visible: " << m_visible << ", Alpha: " << m_sprite.getColor().a << std::endl;
 }
 
 bool Resource::isVisible() const
@@ -104,11 +122,11 @@ bool Resource::isVisible() const
     return m_visible;
 }
 
-void Resource::setPosition(const sf::Vector2u& position)
+void Resource::setPosition(const sf::Vector2f& position)
 {
-    m_sprite.setPosition(position.x, position.y);
-    std::cout << m_sprite.getPosition().x << m_sprite.getPosition().y;
-    //m_text.setPosition(position.x, position.y + m_sprite.getGlobalBounds().height / 2 + 10);
+    m_sprite.setPosition(position);
+    std::cout << "Set position: " << position.x << ", " << position.y << std::endl;
+    m_text.setPosition(position.x - 3, position.y + 11);
 }
 
 sf::Vector2f Resource::getPosition2f() const
@@ -122,4 +140,9 @@ sf::Vector2u Resource::getPosition2u() const
         return sf::Vector2u(m_tiles[0].first, m_tiles[0].second);
     }
     return sf::Vector2u(0, 0);
+}
+
+void Resource::updateTiles(const std::vector<std::pair<int, int>>& newTiles) 
+{
+    m_tiles = newTiles;
 }

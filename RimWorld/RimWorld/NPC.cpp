@@ -43,143 +43,252 @@ void NPC::update(float dt)
 
     if (m_isWaiting)
     {
-        if (m_taskAssigned)
-        {
-            m_isWaiting = false;
-        }
-        else
-        {
-            auto now = std::chrono::steady_clock::now();
-            std::chrono::duration<float> pauseElapsedTime = now - m_pauseStartTime;
-            if (pauseElapsedTime.count() >= 5.0f)
-            {
-                m_isWaiting = false;
-                m_goalTile = findRandomTile();
-                m_lastUpdateTime = now;
-            }
-        }
+        handleWaitingState();
     }
     else
     {
         if (currentTile == m_goalTile)
         {
-            if (m_taskAssigned)
-            {
-                if (m_currentWorkType == WorkType::HARVEST)
-                {
-                    std::cout << "work " << m_name << std::endl;
-                    std::cout << currentTile.x << " " << currentTile.y << std::endl;
-                    std::cout << m_goalTile.x << " " << m_goalTile.y << std::endl;
-                    harvestResource();
-                }
-                else if (m_currentWorkType == WorkType::RESOURCE_TRANSFER)
-                {
-                    if (currentTile == m_goalNextTile)
-                    {
-                        transferResource();
-                    }
-                    else
-                    {
-                        std::vector<Resource>& resources = ResourceManager::GetInstance().m_newResources;
-                        for (auto& resource : resources)
-                        {
-                            if (resource.getPosition2u() == m_goalTile)
-                            {
-                                resource.setVisible(false);
-                                m_goalTile = m_goalNextTile;
-                                resource.setPosition(m_goalNextTile);
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                m_goalTile = findRandomTile();
-                m_isWaiting = true;
-                m_pauseStartTime = std::chrono::steady_clock::now();
-                std::cout << "NPC reached the goal. Waiting for 5 seconds..." << std::endl;
-            }
+            handleGoalReached(currentTile);
         }
         else
         {
-            updatePath(m_mapGraph);
-            const sf::Vector2u nextTileToMove = getNextTileToMove();
-            const sf::Vector2f targetPosition = Map::GetInstance().getPositionFromTile(nextTileToMove);
-            moveTo(dt, targetPosition, currentPosition);
+            moveToNextTile(dt, currentPosition);
         }
     }
 }
+
+void NPC::handleWaitingState()
+{
+    if (m_taskAssigned)
+    {
+        m_isWaiting = false;
+    }
+    else
+    {
+        auto now = std::chrono::steady_clock::now();
+        std::chrono::duration<float> pauseElapsedTime = now - m_pauseStartTime;
+        if (pauseElapsedTime.count() >= 5.0f)
+        {
+            m_isWaiting = false;
+            m_goalTile = findRandomTile();
+            m_lastUpdateTime = now;
+        }
+    }
+}
+
+void NPC::handleGoalReached(const sf::Vector2u& currentTile)
+{
+    if (m_taskAssigned)
+    {
+        processTask(currentTile);
+    }
+    else
+    {
+        m_goalTile = findRandomTile();
+        m_isWaiting = true;
+        m_pauseStartTime = std::chrono::steady_clock::now();
+        std::cout << "NPC reached the goal. Waiting for 5 seconds..." << std::endl;
+    }
+}
+
+void NPC::processTask(const sf::Vector2u& currentTile)
+{
+    switch (m_currentWorkType)
+    {
+    case WorkType::HARVEST:
+        performHarvesting();
+        break;
+    case WorkType::RESOURCE_TRANSFER:
+        performResourceTransfer(currentTile);
+        break;
+    case WorkType::BUILD:
+        performBuilding(currentTile);
+        break;
+    }
+}
+
+void NPC::performHarvesting()
+{
+    std::cout << "work " << m_name << std::endl;
+    std::cout << m_goalTile.x << " " << m_goalTile.y << std::endl;
+    harvestResource();
+}
+
+void NPC::performResourceTransfer(const sf::Vector2u& currentTile)
+{
+    if (currentTile == m_goalNextTile)
+    {
+        transferResource(hasResource);
+    }
+    else
+    {
+        manageResourceTransfer();
+    }
+}
+
+void NPC::manageResourceTransfer()
+{
+    std::vector<Resource>& resources = ResourceManager::GetInstance().m_newResources;
+    for (auto& resource : resources)
+    {
+        if (resource.getPosition2u() == m_goalNextTile)
+        {
+            setResourceQuantity(resource);
+            hasResource = true;
+        }
+    }
+    updateResourcePosition(resources);
+}
+
+void NPC::setResourceQuantity(Resource& resource)
+{
+    switch (resource.getType()) 
+    {
+    case ResourceType::TREE:
+        resource.setQuantity(15);
+        break;
+    case ResourceType::STONE:
+        resource.setQuantity(5);
+        break;
+    case ResourceType::METAL:
+        resource.setQuantity(3);
+        break;
+    }
+}
+
+void NPC::updateResourcePosition(std::vector<Resource>& resources)
+{
+    for (auto& resource : resources)
+    {
+        if (resource.getPosition2u() == m_goalTile)
+        {
+            resource.setVisible(false);
+            if (hasResource)
+            {
+                ResourceManager::GetInstance().removeResource(m_goalTile);
+            }
+            resource.setPosition(Map::GetInstance().getPositionFromTile(m_goalNextTile));
+            m_goalTile = m_goalNextTile;
+            std::vector<std::pair<int, int>> newTiles = { {m_goalNextTile.x, m_goalNextTile.y} };
+            resource.updateTiles(newTiles);
+            break;
+        }
+    }
+}
+
+void NPC::performBuilding(const sf::Vector2u& currentTile)
+{
+    if (currentTile == m_goalNextTile)
+    {
+        building();
+    }
+    else
+    {
+        updateBuildingResources();
+    }
+}
+
+void NPC::updateBuildingResources()
+{
+    std::vector<Resource>& resources = ResourceManager::GetInstance().m_newResources;
+    for (auto& resource : resources)
+    {
+        if (resource.getPosition2u() == m_goalTile)
+        {
+            resource.setQuantity(m_requiredAmount);
+            m_goalTile = m_goalNextTile;
+            break;
+        }
+    }
+}
+
+void NPC::moveToNextTile(float dt, const sf::Vector2f& currentPosition)
+{
+    updatePath(m_mapGraph);
+    const sf::Vector2u nextTileToMove = getNextTileToMove();
+    const sf::Vector2f targetPosition = Map::GetInstance().getPositionFromTile(nextTileToMove);
+    moveTo(dt, targetPosition, currentPosition);
+}
+
 
 void NPC::loadTexture()
 {
     m_texture->loadFromFile("Assets/NPC.png");
 }
 
-void NPC::harvestResource() 
-{
+void NPC::harvestResource() {
     if (!m_taskAssigned) return;
 
     sf::Vector2u currentTile = Map::GetInstance().getTileFromPosition(m_sprite.getPosition());
     std::vector<sf::Vector2u> nearbyTiles = getAdjacentTilesforMine(currentTile);
 
-    for (const auto& tile : nearbyTiles)
-    {
+    for (const auto& tile : nearbyTiles) {
         Resource* resource = ResourceManager::GetInstance().getResourceAt(tile);
-
         if (resource && !resource->isDestroyed()) {
-            resource->destroy();
-            std::vector<std::pair<int, int>> resourceTiles = resource->getTiles();
-
-            for (const auto& resTile : resourceTiles) {
-                Map::GetInstance().setObjectLayer(resTile.first, resTile.second, 0);
-            }
-
-            int quantity = 0;
-            switch (resource->getType()) {
-            case ResourceType::TREE:
-                quantity = 15; 
-                break;
-            case ResourceType::STONE:
-                quantity = 5; 
-                break;
-            case ResourceType::METAL:
-                quantity = 3; 
-                break;
-            default:
-                quantity = 0;
-            }
-
-            ResourceManager::GetInstance().createDroppedResource(resource->getType(), tile, quantity);
-
-            m_isWaiting = true;
-            m_goalTile = findRandomTile();
-            m_taskAssigned = false;
-            NpcManager::GetInstance().updateAllNpcsGraphs();
-            break;
+            processResourceHarvest(resource, tile);
+            break; 
         }
     }
 }
 
-void NPC::transferResource()
+void NPC::processResourceHarvest(Resource* resource, const sf::Vector2u& tile) {
+    resource->destroy();
+    updateMapAfterHarvest(resource);
+
+    int quantity = getResourceQuantity(resource->getType());
+    ResourceManager::GetInstance().createDroppedResource(resource->getType(), tile, quantity);
+
+    finalizeHarvesting(tile);
+}
+
+void NPC::updateMapAfterHarvest(Resource* resource) {
+    for (const auto& resTile : resource->getTiles()) {
+        Map::GetInstance().setObjectLayer(resTile.first, resTile.second, 0);
+    }
+}
+
+int NPC::getResourceQuantity(ResourceType type) const {
+    switch (type) {
+    case ResourceType::TREE: return 15;
+    case ResourceType::STONE: return 5;
+    case ResourceType::METAL: return 3;
+    default: return 0;
+    }
+}
+
+void NPC::finalizeHarvesting(const sf::Vector2u& currentTile) {
+    NpcManager::GetInstance().onTaskCompleted(currentTile);
+    m_isWaiting = true;
+    m_goalTile = findRandomTile();
+    m_taskAssigned = false;
+    NpcManager::GetInstance().updateAllNpcsGraphs();
+}
+
+void NPC::transferResource(bool hasResource)
 {
     std::vector<Resource>& resources = ResourceManager::GetInstance().m_newResources;
     for (auto& resource : resources)
     {
-        if (arePositionsApproximatelyEqual(resource.getPosition2f(), m_goalNextTile))
+        if (resource.getPosition2u() == m_goalNextTile && !hasResource)
         {
             resource.setVisible(true);
         }
     }
     std::cout << "Complete transfer" << std::endl;
+    NpcManager::GetInstance().onTaskCompleted(m_goalNextTile);
     m_isWaiting = true;
     m_goalTile = findRandomTile();
     m_taskAssigned = false;
+    hasResource = false;
 }
 
-bool NPC::arePositionsApproximatelyEqual(const sf::Vector2f& pos1, const sf::Vector2u& pos2, float tolerance) 
+void NPC::building()
 {
-    return std::abs(pos1.x - pos2.x) < tolerance && std::abs(pos1.y - pos2.y) < tolerance;
+    Map::GetInstance().setObjectLayer(m_goalNextTile.x, m_goalNextTile.y, 11);
+    m_isWaiting = true;
+    m_goalTile = findRandomTile();
+    m_taskAssigned = false;
 }
 
 std::vector<sf::Vector2u> NPC::getTreeTiles(const sf::Vector2u& startTile) const
@@ -232,36 +341,16 @@ void NPC::setGraph(const Graph& graph)
     m_mapGraph = graph;
 }
 
-
-Graph NPC::buildGraph()
-{
+Graph NPC::buildGraph() {
     const unsigned mapSize = Map::MAP_SIZE;
     Graph graph(mapSize * mapSize);
 
-    for (unsigned y = 0; y < mapSize; ++y)
-    {
-        for (unsigned x = 0; x < mapSize; ++x)
-        {
+    for (unsigned y = 0; y < mapSize; ++y) {
+        for (unsigned x = 0; x < mapSize; ++x) {
             sf::Vector2u tilePosition(x, y);
-
-            if (!Map::GetInstance().isTileBlocked(tilePosition))
-            {
+            if (!Map::GetInstance().isTileBlocked(tilePosition)) {
                 unsigned vertex = convertMapTileToVertix(tilePosition);
-
-                std::vector<sf::Vector2i> directions = {
-                    {1, 0}, {0, 1}, {-1, 0}, {0, -1}
-                    /*{1, 0}, {0, 1}, {-1, 0}, {0, -1}, 
-                    {1, 1}, {1, -1}, {-1, 1}, {-1, -1} */
-                };
-
-                for (const auto& dir : directions)
-                {
-                    sf::Vector2u neighbor(x + dir.x, y + dir.y);
-                    if (neighbor.x < mapSize && neighbor.y < mapSize && !Map::GetInstance().isTileBlocked(neighbor))
-                    {
-                        graph.addEdge(vertex, convertMapTileToVertix(neighbor));
-                    }
-                }
+                addEdgesToGraph(graph, vertex, x, y, mapSize);
             }
         }
     }
@@ -269,6 +358,38 @@ Graph NPC::buildGraph()
     return graph;
 }
 
+void NPC::addEdgesToGraph(Graph& graph, unsigned vertex, unsigned x, unsigned y, unsigned mapSize) {
+    const std::vector<sf::Vector2i> directions = {
+        {1, 0}, {0, 1}, {-1, 0}, {0, -1},
+        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+    };
+
+    for (const auto& dir : directions) {
+        sf::Vector2u neighbor(x + dir.x, y + dir.y);
+        if (isValidNeighbor(neighbor, mapSize)) {
+            if (isDiagonalBlocked(x, y, dir)) {
+                continue;
+            }
+            graph.addEdge(vertex, convertMapTileToVertix(neighbor));
+        }
+    }
+}
+
+bool NPC::isValidNeighbor(const sf::Vector2u& neighbor, unsigned mapSize) const {
+    return neighbor.x < mapSize && neighbor.y < mapSize && !Map::GetInstance().isTileBlocked(neighbor);
+}
+
+bool NPC::isDiagonalBlocked(unsigned x, unsigned y, const sf::Vector2i& dir) const {
+    if (std::abs(dir.x) == 1 && std::abs(dir.y) == 1) {
+        sf::Vector2u horizontalNeighbor(x + dir.x, y);
+        sf::Vector2u verticalNeighbor(x, y + dir.y);
+        return Map::GetInstance().isTileBlocked(horizontalNeighbor) || Map::GetInstance().isTileBlocked(verticalNeighbor);
+    }
+    return false;
+}
+
+
+//bfc
 void NPC::updatePath(Graph& graph)
 {
     const sf::Vector2u referenceTile = Map::GetInstance().getTileFromPosition(m_sprite.getPosition());
@@ -291,6 +412,40 @@ void NPC::updatePath(Graph& graph)
         m_path.push_back(convertVertixToMapTile(vertex));
     }
 }
+
+//A*
+//void NPC::updatePath(Graph& graph)
+//{
+//    const sf::Vector2u referenceTile = Map::GetInstance().getTileFromPosition(m_sprite.getPosition());
+//    const sf::Vector2u targetTile = m_goalTile;
+//
+//    // Перевірка, чи заблокована цільова плитка
+//    if (Map::GetInstance().isTileBlocked(targetTile))
+//    {
+//        m_goalTile = findRandomTile();
+//        return;
+//    }
+//
+//    const unsigned startVertex = convertMapTileToVertix(referenceTile);
+//    const unsigned destinationVertex = convertMapTileToVertix(targetTile);
+//
+//    auto heuristic = [](unsigned a, unsigned b) {
+//        unsigned ax = a % Map::MAP_SIZE;
+//        unsigned ay = a / Map::MAP_SIZE;
+//        unsigned bx = b % Map::MAP_SIZE;
+//        unsigned by = b / Map::MAP_SIZE;
+//        return std::hypot(static_cast<float>(bx - ax), static_cast<float>(by - ay));
+//        };
+//
+//    std::vector<unsigned> path = graph.aStar(startVertex, destinationVertex, heuristic);
+//
+//    m_path.clear();
+//    for (unsigned vertex : path)
+//    {
+//        m_path.push_back(convertVertixToMapTile(vertex));
+//    }
+//}
+
 
 sf::Vector2u NPC::getNextTileToMove()
 {
@@ -335,22 +490,21 @@ sf::Vector2u NPC::findRandomTile() const
     }
 }
 
-void NPC::moveTo(float dt, const sf::Vector2f& targetPosition, const sf::Vector2f& currentPosition)
+void NPC::moveTo(float dt, const sf::Vector2f& targetPosition, const sf::Vector2f& currentPosition) 
 {
-    const float DeltaSpeed = dt * 400.0f;
+    const float DeltaSpeed = dt * 64.0f;
     const float ArrivalThreshold = 1.0f;
 
     const sf::Vector2f Direction = targetPosition - currentPosition;
 
-    if (MathHelper::GetLength(Direction) > ArrivalThreshold)
+    if (MathHelper::GetLength(Direction) > ArrivalThreshold) 
     {
         const sf::Vector2f NormalizedDirection = MathHelper::Normalize(Direction);
-
         m_sprite.move(NormalizedDirection * DeltaSpeed);
     }
-    else
+    else 
     {
-        m_sprite.setPosition(targetPosition);
+        m_sprite.setPosition(targetPosition); 
     }
 }
 
@@ -378,7 +532,6 @@ void NPC::assignTaskForHarvest(const sf::Vector2u& resourceTile)
     }
 }
 
-
 void NPC::assignTaskForTransfer(const sf::Vector2u& fromTiles, const sf::Vector2u& ToTiles)
 {
     if (m_taskAssigned)
@@ -395,11 +548,25 @@ void NPC::assignTaskForTransfer(const sf::Vector2u& fromTiles, const sf::Vector2
     m_currentWorkType = WorkType::RESOURCE_TRANSFER;
 }
 
+void NPC::assignTaskForBuild(const sf::Vector2u& fromTiles, const sf::Vector2u& ToTiles, int requiredAmount)
+{
+    if (m_taskAssigned)
+    {
+        std::cerr << "Task already assigned to NPC: " << m_name << std::endl;
+        return;
+    }
+    m_requiredAmount = requiredAmount;
+    m_goalTile = fromTiles;
+    m_goalNextTile = ToTiles;
+    m_isWaiting = false;
+    m_taskAssigned = true;
+    m_currentWorkType = WorkType::BUILD;
+}
+
 bool NPC::isFree() const
 {
     return !m_isWaiting && !m_taskAssigned && m_goalTile == Map::GetInstance().getTileFromPosition(m_sprite.getPosition());
 }
-
 
 sf::Vector2f NPC::getPosition() const
 {
@@ -411,9 +578,8 @@ std::vector<sf::Vector2u> NPC::getAdjacentTilesforWolking(const sf::Vector2u& ti
     std::vector<sf::Vector2u> adjacentTiles;
 
     std::vector<sf::Vector2i> directions = {
-        {1, 0}, {0, 1}, {-1, 0}, {0, -1}
-        /*{1, 0}, {0, 1}, {-1, 0}, {0, -1},
-        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}*/
+        {1, 0}, {0, 1}, {-1, 0}, {0, -1},
+        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
     };
 
     for (const auto& dir : directions)

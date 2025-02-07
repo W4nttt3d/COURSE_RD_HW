@@ -3,7 +3,10 @@
 #include <iostream>
 #include "NpcManager.h"
 
-ResourceManager::ResourceManager(){}
+ResourceManager::ResourceManager()
+{
+    m_font.loadFromFile("Assets/FixelDisplay-Bold.ttf");
+}
 
 void ResourceManager::addResources(Map::TilesMapType map)
 {
@@ -21,11 +24,7 @@ void ResourceManager::addResources(Map::TilesMapType map)
                     map[y + 1][x] == 5 &&
                     map[y + 1][x + 1] == 4)
                 {
-                    resources.push_back({
-                        ResourceType::TREE,
-                        {{x, y}, {x + 1, y}, {x, y + 1}, {x + 1, y + 1}},
-                        15 
-                        });
+                    resources.push_back({ResourceType::TREE, {{x, y}, {x + 1, y}, {x, y + 1}, {x + 1, y + 1}}, 15 });
 
                     map[y][x] = 0;
                     map[y][x + 1] = 0;
@@ -78,8 +77,27 @@ void ResourceManager::createDroppedResource(ResourceType type, const sf::Vector2
     if (position.x >= 0 && position.y >= 0 && position.x < m_map[0].size() && position.y < m_map.size())
     {
         Resource droppedResource(type, { {static_cast<int>(position.x), static_cast<int>(position.y)} }, quantity);
+        droppedResource.setFont(&m_font);
         m_newResources.push_back(droppedResource);
         std::cout << quantity << std::endl;
         NpcManager::GetInstance().assignResourceTransferTask(droppedResource.getPosition2u(), droppedResource.getType());
     }
 }
+
+void ResourceManager::removeResource(const sf::Vector2u& position)
+{
+    // Пошук ресурсу за позицією
+    auto it = std::remove_if(m_resources.begin(), m_resources.end(),
+        [&position](const Resource& resource)
+        {
+            const auto& tiles = resource.getTiles();
+            return std::find(tiles.begin(), tiles.end(), std::make_pair(position.x, position.y)) != tiles.end();
+        });
+
+    // Видаляємо ресурс, якщо знайдений
+    if (it != m_resources.end())
+    {
+        m_resources.erase(it, m_resources.end());
+    }
+}
+

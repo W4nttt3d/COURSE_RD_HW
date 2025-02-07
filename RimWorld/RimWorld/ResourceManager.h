@@ -18,9 +18,11 @@ public:
     Resource* getResourceAt(const sf::Vector2u& position);
     void draw(sf::RenderWindow& window);
     void createDroppedResource(ResourceType type, const sf::Vector2u& position, int quantity);
+    void removeResource(const sf::Vector2u& position);
     std::vector<Resource> m_newResources;
 
 private:
     std::vector<Resource> m_resources;
     Map::TilesMapType m_map; 
+    sf::Font m_font;
 };
